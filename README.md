@@ -17,10 +17,10 @@ of the bikepoint. We will use the geographical data to see if the population
 statistics have an impact on the usage of the bikepoint.
 
 Hypotheses:
-Faulty bikepoints are clustered together. 
-Bikepoints at a high elevation are less frequently used.
-Bikepoints have higher activity during rush hour.
-Higher populated areas have more bike activity
+A Faulty bikepoints will have more faulty bikepoints near it. 
+Bikepoints at a high elevation are smaller.
+Bikepoints in high populated areas are more often faulty.
+Higher populated areas have more larger bikepoints
 
 APIS:
 TfL BikePoint API.
