@@ -28,7 +28,7 @@ Bikepoints in high populated areas are more often faulty.
 H0 = Bikepoints in highly populated areas have the same number of faulty docks as general bikepoints
 H1 = Bikepoints in highly populated areas have more faulty docks
 
-Higher populated areas have more larger bikepoints
+Higher populated areas have larger bikepoints
 H0 = Bikepoints in highly populated areas have the same number of docks as general bikepoints
 H1 = Bikepoints in highly populated areas have more docks than general bikepoints
 
