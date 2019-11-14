@@ -43,7 +43,26 @@ class BikeTimes():
             bikes_list.append(bike_dict)
         self.df = pd.DataFrame(bike_list)
     
-    def 
+    def add_num_faulty_near(self):
+        faulty_list = []
+        for n in range(len(self.df)):
+            lat_n = self.df.coords[n][0]
+            lon_n = self.df.coords[n][1]
+            faulty_near = 0
+            for i in range(len(self.df)):
+                lat_i = self.df.coords[i][0]
+                lon_i = self.df.coords[i][1]
+                bol = ((lat_n-lat_i)**2 + (lon_n - lon_i)**2 < 0.000005)
+            if bol:
+                faulty_near += 1
+        faulty_list.append(faulty_near)
+        self.df['num_faulty_near'] = faulty_list
+        
+    def add_faulty_near(self):
+        self.df['faulty_near'] = (self.df['num_faulty_near'] >= 2)
+        
+    def get_df(self):
+        return self.df
 
 class GeoGetter():
     def __init__(self):
