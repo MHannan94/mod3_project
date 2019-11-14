@@ -18,9 +18,9 @@ statistics have an impact on the usage of the bikepoint.
 Hypotheses:
 
 
-1) A Faulty bikepoints will have more faulty bikepoints near it. 
+1) A Faulty bikepoints will be less likely to have other faulty bikepoints near it 
 H0 = Faulty bikepoints have the same number of faulty bikepoints nearby as general bikepoints
-H1 = Faulty bikepoints have more likely to have more than 1 faulty bikepoints near them than general bikepoints
+H1 = Faulty bikepoints have less likely to have more than 1 faulty bikepoints near them than general bikepoints
 
 2) Bikepoints at a high elevation are smaller.
 H0 = Bikepoints on hills have the same number of docks as general bikepoints
