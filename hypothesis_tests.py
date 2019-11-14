@@ -10,6 +10,8 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 import math
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def split_by_bool(dataframe, col):
@@ -17,15 +19,42 @@ def split_by_bool(dataframe, col):
     false_df = dataframe[dataframe[col]==False]
     return true_df, false_df
 
+def get_means_of_sample(dataframe, feature, sample_size = 50, num_sims = 50, seed = 3):
+    np.random.seed(seed)
+    preds = []
+    for i in range(num_sims):
+        sample = dataframe.sample(n= sample_size, replace = True)
+        mean = np.sum(sample[feature])/sample_size
+        preds.append(mean)
 
+    return preds
 
+def plot_means_of_sample(dataframe, feature, sample_size = 50, num_sims = 50, seed = 3):
+    preds = get_means_of_sample(dataframe, feature, sample_size, num_sims, seed)
+    fig = plt.figure(figsize = (10,7))
+    sns.distplot(preds, norm_hist = True)
+    plt.title(f'Mean of {feature} from samples of data')
+    plt.xlabel(f'Average {feature}')
+    plt.ylabel('Density')
+    plt.show()
 
+def coh_d(sample1, sample2):
+    n_1 = len(sample1)
+    n_2 = len(sample2)
+    std_1 = np.std(sample1, ddof = 1)
+    std_2 = np.std(sample2, ddof = 1)
+    dof = n_1 + n_2 - 2
+    num = np.mean(sample1) - np.mean(sample2)
+    denom = np.sqrt(((n_1 - 1)*std_1 + (n_2 - 1)*std_2)/dof)
+    return num/denom
 
-
-
-
-
-
+def compare_distributions(sample1,sample2):
+    sns.distplot(probs1_subsample1, hist=False, norm_hist=True, label='Faulty bikepoints', color='red')
+    sns.distplot(probs1_subsample2, hist=False, norm_hist=True, label='Non-faulty bikepoints', color='skyblue')
+    plt.axvline(x = np.mean(probs1_subsample1), color='red')
+    plt.axvline(x = np.mean(probs1_subsample2), color='skyblue')
+    plt.xlabel('Probability of having more than 1 faulty neighbour')
+    plt.legend();
 
 # def create_sample_dists(cleaned_data, y_var=None, categories=[]):
 #     """
@@ -43,50 +72,63 @@ def split_by_bool(dataframe, col):
 #     # Main chunk of code using t-tests or z-tests
 #     return htest_dfs
 
-# def compare_pval_alpha(p_val, alpha):
-#     status = ''
-#     if p_val > alpha:
-#         status = "Fail to reject"
-#     else:
-#         status = 'Reject'
-#     return status
+def compare_pval_alpha(p_val, alpha = 0.05):
+    status = ''
+    if p_val > alpha:
+        status = "Fail to reject"
+    else:
+        status = 'Reject'
+    return status
 
 
-# def hypothesis_test_one(alpha = None, cleaned_data):
-#     """
-#     Describe the purpose of your hypothesis test in the docstring
-#     These functions should be able to test different levels of alpha for the hypothesis test.
-#     If a value of alpha is entered that is outside of the acceptable range, an error should be raised.
+def hypothesis_test_one(cleaned_data, alpha = 0.05):
+    """
+    Describe the purpose of your hypothesis test in the docstring
+    These functions should be able to test different levels of alpha for the hypothesis test.
+    If a value of alpha is entered that is outside of the acceptable range, an error should be raised.
 
-#     :param alpha: the critical value of choice
-#     :param cleaned_data:
-#     :return:
-#     """
-#     # Get data for tests
-#     comparison_groups = create_sample_dists(cleaned_data=None, y_var=None, categories=[])
+    :param alpha: the critical value of choice
+    :param cleaned_data:
+    :return:
+    """
+    if alpha <= 0 or alpha >= 1:
+        return 'Error. Alpha value must be between 0 and 1.'
+    # Get data for tests
+    faulty_bikes_df, non_faulty_bikes_df = split_by_bool(cleaned_data, 'faulty')
+    plot_means_of_sample(faulty_bikes_df, 'faulty_near')
+    plot_means_of_sample(non_faulty_bikes_df, 'faulty_near')
 
-#     ###
-#     # Main chunk of code using t-tests or z-tests, effect size, power, etc
-#     ###
+    ###
+    # Main chunk of code using t-tests or z-tests, effect size, power, etc
+    ###
+    sample1 = get_means_of_sample(faulty_bikes_df, 'faulty_near', num_sims = 198)
+    sample2 = get_means_of_sample(non_faulty_bikes_df, 'faulty_near', num_sims = 198)
+    
+    results = stats.ttest_ind(sample1, sample2)
+    t_val = results[0]
+    p_val = results[1]
+    
+    d = coh_d(sample1, sample2)
+    power = 0.8
+    # starter code for return statement and printed results
+    status = compare_pval_alpha(p_val, alpha)
+    assertion = ''
+    if status == 'Fail to reject':
+        assertion = 'cannot'
+    else:
+        assertion = "can"
+        # calculations for effect size, power, etc here as well
 
-#     # starter code for return statement and printed results
-#     status = compare_pval_alpha(p_val, alpha)
-#     assertion = ''
-#     if status == 'Fail to reject':
-#         assertion = 'cannot'
-#     else:
-#         assertion = "can"
-#         # calculations for effect size, power, etc here as well
+    print(f'Based on the p value of {p_val} and our aplha of {alpha} we {status.lower()}  the null hypothesis.'
+          f'\nDue to these results, we {assertion} state that there is a difference between the probability'
+          '\nof having a faulty bikepoint nearby for faulty bikepoints and non-faulty bikepoints')
 
-#     print(f'Based on the p value of {p_val} and our aplha of {alpha} we {status.lower()}  the null hypothesis.'
-#           f'\n Due to these results, we  {assertion} state that there is a difference between NONE')
+    if assertion == 'can':
+        print(f"with an effect size, cohen's d, of {str(d)} and power of {power}.")
+    else:
+        print(".")
 
-#     if assertion == 'can':
-#         print(f"with an effect size, cohen's d, of {str(coh_d)} and power of {power}.")
-#     else:
-#         print(".")
-
-#     return status
+    return status
 
 # def hypothesis_test_two():
 #     pass
