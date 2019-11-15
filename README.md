@@ -9,6 +9,23 @@ This repo contains:
 Authors:
 Joe Read and Mohammed Hannan
 
+Files:
+hypothesis_testing.ipynb
+hypothesis_testing.py
+data_taking.py
+Mod 3 project.pdf (slides)
+
+Rough working notebooks:
+joe.ipynb
+mo.ipynb
+
+Saved datasets:
+geo_dataframe
+bikes_dataframe
+(can be updated)
+
+
+
 Dataset:
 London TfL Bikepoint data combined with London geographical data.
 We want to look at how the location of the bikepoint influences the condition
