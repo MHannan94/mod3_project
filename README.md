@@ -10,18 +10,27 @@ Authors:
 Joe Read and Mohammed Hannan
 
 Files:
+
 hypothesis_testing.ipynb
+
 hypothesis_testing.py
+
 data_taking.py
+
 Mod 3 project.pdf (slides)
 
 Rough working notebooks:
+
 joe.ipynb
+
 mo.ipynb
 
 Saved datasets:
+
 geo_dataframe
+
 bikes_dataframe
+
 (can be updated)
 
 
