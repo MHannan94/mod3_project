@@ -11,25 +11,25 @@ Joe Read and Mohammed Hannan
 
 Files:
 
-hypothesis_testing.ipynb
+* hypothesis_testing.ipynb
 
-hypothesis_testing.py
+* hypothesis_testing.py
 
-data_taking.py
+* data_taking.py
 
-Mod 3 project.pdf (slides)
+* Mod 3 project.pdf (slides)
 
 Rough working notebooks:
 
-joe.ipynb
+* joe.ipynb
 
-mo.ipynb
+* mo.ipynb
 
 Saved datasets:
 
-geo_dataframe
+* geo_dataframe
 
-bikes_dataframe
+* bikes_dataframe
 
 (can be updated)
 
