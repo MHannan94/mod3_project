@@ -6,7 +6,7 @@ import pickle
 from datetime import datetime
 
 
-
+# class to retrieve data, transform, and save as a pickle file
 class BikeTimes():
     def __init__(self):
         self.date = datetime.now()
@@ -19,6 +19,7 @@ class BikeTimes():
         with open(f'./bike_data_{self.hour}_{self.minute}.json', 'w+') as f:
             f.write(json.dumps(self.data, sort_keys = True, indent = 4))
     
+    # Extract relevant information from api and create dataframe
     def create_df(self):
         bikes_list = []
         
@@ -43,6 +44,7 @@ class BikeTimes():
             bikes_list.append(bike_dict)
         self.df = pd.DataFrame(bike_list)
     
+    # For each bikepoint, find neighbouring bikepoints within a radius and compare features
     def add_num_faulty_near(self):
         faulty_list = []
         for n in range(len(self.df)):
@@ -64,10 +66,12 @@ class BikeTimes():
     def get_df(self):
         return self.df
 
+# Retrieve geographical data from api and store as Geo dataframe
 class GeoGetter():
     def __init__(self):
         self.url = 'http://www.datasciencetoolkit.org/coordinates2statistics/'
     
+    # Take coordinate data from existing bike dataframe and create geo dataframe indexed by coordinates
     def create_df(self, dataframe):
         geo_list = []
         for i in range(len(dataframe)):
@@ -86,7 +90,8 @@ class GeoGetter():
             geo_list.append(geo_dict)
             
         self.df = pd.DataFrame(geo_list).set_index('coords')
-        
+    
+    # For each coordinate, look at neighbouring coordinates and check if the elevation is greater than the mean of all neighbours
     def add_hill_data(self):
         hill_list = []
         for n in range(len(self.df)):

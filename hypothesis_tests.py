@@ -1,11 +1,3 @@
-"""
-This module is for your final hypothesis tests.
-Each hypothesis test should tie to a specific analysis question.
-
-Each test should print out the results in a legible sentence
-return either "Reject the null hypothesis" or "Fail to reject the null hypothesis" depending on the specified alpha
-"""
-
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -14,12 +6,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
+# Our data will be split into two samples based on a boolean condition, ie hill or no hill
 def split_by_bool(dataframe, col):
     true_df = dataframe[dataframe[col]==True]
     false_df = dataframe[dataframe[col]==False]
     return true_df, false_df
 
-def get_means_of_sample(dataframe, feature, sample_size = 50, num_sims = 50, seed = 3):
+# Take 198 (can be changed) samples of size 50 from each split dataframe
+# 198 sample size to detect small effect size with power of 0.8 and alpha 0.05.
+def get_means_of_sample(dataframe, feature, sample_size = 50, num_sims = 198, seed = 3):
     np.random.seed(seed)
     preds = []
     for i in range(num_sims):
@@ -29,6 +24,7 @@ def get_means_of_sample(dataframe, feature, sample_size = 50, num_sims = 50, see
 
     return preds
 
+# Plots the distribution and histograms of the means of our 198 samples
 def plot_means_of_sample(dataframe, feature, sample_size = 50, num_sims = 50, seed = 3):
     preds = get_means_of_sample(dataframe, feature, sample_size, num_sims, seed)
     fig = plt.figure(figsize = (10,7))
@@ -38,6 +34,8 @@ def plot_means_of_sample(dataframe, feature, sample_size = 50, num_sims = 50, se
     plt.ylabel('Density')
     plt.show()
 
+    
+# Cohen's d calculator for 2 sample t-test    
 def coh_d(sample1, sample2):
     n_1 = len(sample1)
     n_2 = len(sample2)
@@ -49,23 +47,7 @@ def coh_d(sample1, sample2):
     return num/denom
 
 
-
-# def create_sample_dists(cleaned_data, y_var=None, categories=[]):
-#     """
-#     Each hypothesis test will require you to create a sample distribution from your data
-#     Best make a repeatable function
-
-#     :param cleaned_data:
-#     :param y_var: The numeric variable you are comparing
-#     :param categories: the categories whose means you are comparing
-#     :return: a list of sample distributions to be used in subsequent t-tests
-
-#     """
-#     htest_dfs = []
-
-#     # Main chunk of code using t-tests or z-tests
-#     return htest_dfs
-
+# Alpha p-value comparison
 def compare_pval_alpha(p_val, alpha = 0.05):
     status = ''
     if p_val > alpha:
@@ -74,6 +56,16 @@ def compare_pval_alpha(p_val, alpha = 0.05):
         status = 'Reject'
     return status
 
+
+
+# Hypothesis test super function
+# Splits the data along a boolean condition 
+# Samples each split dataframe and returns a sns dist plot
+# Plots the distribution of the 2 splits along with their means
+# Calculates relevant variances and the ratio of one variance to another to determine similarity
+# Plots both densitys on one axis to see the effect size
+# Performs ttest or welch t-test depending on the ratio of variances
+# Prints summary of the results of the hypothesis test
 
 def hypothesis_test(cleaned_data, split_col, test_col, alpha = 0.05, num_sim = 198):
     """
@@ -92,7 +84,7 @@ def hypothesis_test(cleaned_data, split_col, test_col, alpha = 0.05, num_sim = 1
         return 'Error. Input column names as strings'
     # Get data for tests
     true_df, false_df = split_by_bool(cleaned_data, split_col)
-    
+    # Display the dataframes to see the data with which we are working.
     display(true_df.head())
     print('\n')
     display(false_df.head())
@@ -144,7 +136,6 @@ def hypothesis_test(cleaned_data, split_col, test_col, alpha = 0.05, num_sim = 1
         assertion = 'cannot'
     else:
         assertion = "can"
-        # calculations for effect size, power, etc here as well
 
     print(f'Based on the p value of {p_val} and our aplha of {round(alpha, 3)} we {status.lower()} the null hypothesis.')
           
@@ -152,13 +143,3 @@ def hypothesis_test(cleaned_data, split_col, test_col, alpha = 0.05, num_sim = 1
         print(f"with an effect size, cohen's d, of {round(d, 3)} and power of {power}.")
     else:
         print(".")
-
-
-# def hypothesis_test_two():
-#     pass
-
-# def hypothesis_test_three():
-#     pass
-
-# def hypothesis_test_four():
-#     pass
