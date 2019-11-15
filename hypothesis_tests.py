@@ -32,9 +32,9 @@ def get_means_of_sample(dataframe, feature, sample_size = 50, num_sims = 50, see
 def plot_means_of_sample(dataframe, feature, sample_size = 50, num_sims = 50, seed = 3):
     preds = get_means_of_sample(dataframe, feature, sample_size, num_sims, seed)
     fig = plt.figure(figsize = (10,7))
-    sns.distplot(preds, norm_hist = True)
-    plt.title(f'Mean of {feature} from samples of data')
-    plt.xlabel(f'Average {feature}')
+    sns.distplot(preds, norm_hist = True, bins=15)
+    plt.title(f'Distribution of mean of {feature}')
+    plt.xlabel(f'Mean {feature}')
     plt.ylabel('Density')
     plt.show()
 
@@ -45,16 +45,10 @@ def coh_d(sample1, sample2):
     std_2 = np.std(sample2, ddof = 1)
     dof = n_1 + n_2 - 2
     num = np.mean(sample1) - np.mean(sample2)
-    denom = np.sqrt(((n_1 - 1)*std_1 + (n_2 - 1)*std_2)/dof)
+    denom = np.sqrt(((n_1 - 1)*std_1**2 + (n_2 - 1)*std_2**2)/dof)
     return num/denom
 
-def compare_distributions(sample1,sample2):
-    sns.distplot(probs1_subsample1, hist=False, norm_hist=True, label='Faulty bikepoints', color='red')
-    sns.distplot(probs1_subsample2, hist=False, norm_hist=True, label='Non-faulty bikepoints', color='skyblue')
-    plt.axvline(x = np.mean(probs1_subsample1), color='red')
-    plt.axvline(x = np.mean(probs1_subsample2), color='skyblue')
-    plt.xlabel('Probability of having more than 1 faulty neighbour')
-    plt.legend();
+
 
 # def create_sample_dists(cleaned_data, y_var=None, categories=[]):
 #     """
@@ -81,7 +75,7 @@ def compare_pval_alpha(p_val, alpha = 0.05):
     return status
 
 
-def hypothesis_test_one(cleaned_data, alpha = 0.05):
+def hypothesis_test(cleaned_data, split_col, test_col, alpha = 0.05, num_sim = 198):
     """
     Describe the purpose of your hypothesis test in the docstring
     These functions should be able to test different levels of alpha for the hypothesis test.
@@ -91,24 +85,57 @@ def hypothesis_test_one(cleaned_data, alpha = 0.05):
     :param cleaned_data:
     :return:
     """
+    np.random.seed(3)
     if alpha <= 0 or alpha >= 1:
         return 'Error. Alpha value must be between 0 and 1.'
+    if type(test_col) != str or type(split_col) != str:
+        return 'Error. Input column names as strings'
     # Get data for tests
-    faulty_bikes_df, non_faulty_bikes_df = split_by_bool(cleaned_data, 'faulty')
-    plot_means_of_sample(faulty_bikes_df, 'faulty_near')
-    plot_means_of_sample(non_faulty_bikes_df, 'faulty_near')
+    true_df, false_df = split_by_bool(cleaned_data, split_col)
+    
+    display(true_df.head())
+    print('\n')
+    display(false_df.head())
+    plot_means_of_sample(true_df, test_col)
+    plot_means_of_sample(false_df, test_col)
 
     ###
     # Main chunk of code using t-tests or z-tests, effect size, power, etc
     ###
-    sample1 = get_means_of_sample(faulty_bikes_df, 'faulty_near', num_sims = 198)
-    sample2 = get_means_of_sample(non_faulty_bikes_df, 'faulty_near', num_sims = 198)
+    sample1 = get_means_of_sample(true_df, test_col, num_sims = num_sim)
+    sample2 = get_means_of_sample(false_df, test_col, num_sims = num_sim)
     
-    results = stats.ttest_ind(sample1, sample2)
-    t_val = results[0]
-    p_val = results[1]
+    fig = plt.figure(figsize = (10,7))
+    sns.distplot(sample1, hist=False, norm_hist=True, label= '{}'.format(split_col).title(), color='red')
+    sns.distplot(sample2, hist=False, norm_hist=True, label='Not {}'.format(split_col).title(), color='skyblue')
+    plt.axvline(x = np.mean(sample1), color='red')
+    plt.axvline(x = np.mean(sample2), color='skyblue')
+    plt.xlabel('Mean of {}'.format(test_col))
+    plt.ylabel('Density')
+    plt.title('Comparison of distributions')
+    plt.legend();
     
+    
+    v1 = np.var(sample1)
+    v2 = np.var(sample2)
+
+    print('{} var = {}'.format(split_col,round(v1, 3)) + '\nNon-{} var = {}'.format(split_col, round(v2, 3)))
+    
+    ratio = v1/v2
+    
+    if ratio < 0.75 or ratio > 1.25:
+        print("The ratio {} is not close enough to 1 to use a t-test, so we use Welch's t-test".format(round(ratio, 3)))
+        results = stats.ttest_ind(sample1, sample2, equal_var= False)
+        t_val = results[0]
+        p_val = results[1]
+    else:
+        print("The ratio {} is close enough to 1 to use a t-test".format(round(ratio, 3)))
+        results = stats.ttest_ind(sample1, sample2)
+        t_val = results[0]
+        p_val = results[1]
+        
     d = coh_d(sample1, sample2)
+    
     power = 0.8
     # starter code for return statement and printed results
     status = compare_pval_alpha(p_val, alpha)
@@ -119,16 +146,13 @@ def hypothesis_test_one(cleaned_data, alpha = 0.05):
         assertion = "can"
         # calculations for effect size, power, etc here as well
 
-    print(f'Based on the p value of {p_val} and our aplha of {alpha} we {status.lower()}  the null hypothesis.'
-          f'\nDue to these results, we {assertion} state that there is a difference between the probability'
-          '\nof having a faulty bikepoint nearby for faulty bikepoints and non-faulty bikepoints')
-
+    print(f'Based on the p value of {p_val} and our aplha of {round(alpha, 3)} we {status.lower()} the null hypothesis.')
+          
     if assertion == 'can':
-        print(f"with an effect size, cohen's d, of {str(d)} and power of {power}.")
+        print(f"with an effect size, cohen's d, of {round(d, 3)} and power of {power}.")
     else:
         print(".")
 
-    return status
 
 # def hypothesis_test_two():
 #     pass
